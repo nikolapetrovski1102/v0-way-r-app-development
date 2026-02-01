@@ -233,9 +233,9 @@ export const tripHistory: Trip[] = [
   {
     ...mockTrip,
     id: '4',
-    status: 'upcoming',
-    startDate: '2026-03-20',
-    endDate: '2026-03-23',
-    destination: destinations[3]
+    status: 'active',
+    startDate: '2026-05-12',
+    endDate: '2026-05-18',
+    destination: destinations[0] // Paris
   }
 ]

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Search, Plus, ChevronRight, Navigation, MapPin, Calendar, Sparkles, TrendingUp, Clock, Heart, Play } from 'lucide-react'
+import { Search, Plus, ChevronRight, Navigation, MapPin, Calendar, Sparkles, TrendingUp, Clock, Heart, Play, Eye, Pencil, Share2, Utensils, Landmark, TreePine, Camera } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useNavigation } from '@/components/mobile-app-shell'
@@ -17,6 +17,14 @@ const exampleTrip = {
   highlights: ['Sagrada Familia', 'Park Guell', 'La Rambla', 'Gothic Quarter'],
   description: 'Discover Gaudi\'s masterpieces and vibrant culture'
 }
+
+// Suggested interest tags for active trips
+const tripSuggestions = [
+  { id: 'food', label: 'Food', icon: Utensils, color: 'bg-orange-500' },
+  { id: 'landmarks', label: 'Museums', icon: Landmark, color: 'bg-amber-500' },
+  { id: 'nature', label: 'Nature', icon: TreePine, color: 'bg-emerald-500' },
+  { id: 'photo', label: 'Photo Spots', icon: Camera, color: 'bg-sky-500' },
+]
 
 // Simulated AI suggestions based on user's past trips and trending destinations
 const aiSuggestions = [
@@ -92,45 +100,107 @@ export function HomeScreen() {
         </div>
       </div>
 
-      {/* Active Trip Card */}
+      {/* Active Trip Card - Smart Recap with Quick Actions */}
       {hasActiveTrip && activeTrip && (
         <div className="px-6 pb-4">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-2xl bg-primary p-4"
+            className="overflow-hidden rounded-2xl bg-card ring-1 ring-border"
           >
-            <div className="relative z-10">
-              <div className="flex items-center gap-2">
-                <div className="rounded-full bg-white/20 px-3 py-1">
-                  <span className="text-xs font-medium text-primary-foreground">Active Trip</span>
-                </div>
+            {/* Hero Image Section */}
+            <div className="relative h-48 overflow-hidden">
+              <img
+                src={activeTrip.destination.image}
+                alt={activeTrip.destination.name}
+                className="h-full w-full object-cover"
+                crossOrigin="anonymous"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+              
+              {/* Countdown Badge */}
+              <div className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 backdrop-blur-sm">
+                <Clock className="h-3.5 w-3.5 text-primary" />
+                <span className="text-xs font-semibold text-foreground">
+                  {(() => {
+                    const start = new Date(activeTrip.startDate)
+                    const today = new Date()
+                    const diffTime = start.getTime() - today.getTime()
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+                    if (diffDays <= 0) return 'Trip in progress'
+                    if (diffDays === 1) return '1 day to go'
+                    return `${diffDays} days to go`
+                  })()}
+                </span>
               </div>
-              <h3 className="mt-3 text-xl font-bold text-primary-foreground">
-                {activeTrip.destination.name}, {activeTrip.destination.country}
-              </h3>
-              <div className="mt-2 flex items-center gap-4 text-sm text-primary-foreground/80">
-                <span className="flex items-center gap-1">
+              
+              {/* Destination Info */}
+              <div className="absolute inset-x-0 bottom-0 p-4">
+                <p className="text-sm font-medium text-white/80">Your next trip</p>
+                <h3 className="text-2xl font-bold text-white">
+                  {activeTrip.destination.name}, {activeTrip.destination.country}
+                </h3>
+                <p className="mt-1 flex items-center gap-1.5 text-sm text-white/80">
                   <Calendar className="h-4 w-4" />
-                  Day 1 of 3
-                </span>
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-4 w-4" />
-                  3 stops today
-                </span>
+                  {new Date(activeTrip.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(activeTrip.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </p>
               </div>
-              <Button
-                variant="secondary"
-                size="sm"
-                className="mt-4 rounded-lg bg-white text-primary hover:bg-white/90"
-                onClick={() => navigate('itinerary')}
-              >
-                Continue Exploring
-                <ChevronRight className="ml-1 h-4 w-4" />
-              </Button>
             </div>
-            <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10" />
-            <div className="absolute -bottom-4 -right-4 h-24 w-24 rounded-full bg-white/10" />
+
+            {/* Quick Actions */}
+            <div className="border-b border-border p-3">
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                <button
+                  onClick={() => navigate('itinerary')}
+                  className="flex items-center gap-1.5 whitespace-nowrap rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                >
+                  <Eye className="h-4 w-4" />
+                  View itinerary
+                </button>
+                <button
+                  onClick={() => navigate('preferences')}
+                  className="flex items-center gap-1.5 whitespace-nowrap rounded-full bg-secondary px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary/80"
+                >
+                  <Pencil className="h-4 w-4" />
+                  Edit plans
+                </button>
+                <button
+                  onClick={() => navigate('itinerary')}
+                  className="flex items-center gap-1.5 whitespace-nowrap rounded-full bg-secondary px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary/80"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add activity
+                </button>
+                <button
+                  className="flex items-center gap-1.5 whitespace-nowrap rounded-full bg-secondary px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary/80"
+                >
+                  <Share2 className="h-4 w-4" />
+                  Share trip
+                </button>
+              </div>
+            </div>
+
+            {/* Suggested for this trip */}
+            <div className="p-4">
+              <p className="mb-3 text-sm font-medium text-muted-foreground">Suggested for this trip</p>
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                {tripSuggestions.map((suggestion) => {
+                  const Icon = suggestion.icon
+                  return (
+                    <button
+                      key={suggestion.id}
+                      onClick={() => navigate('itinerary')}
+                      className="flex items-center gap-2 whitespace-nowrap rounded-xl bg-secondary/50 px-3 py-2 transition-colors hover:bg-secondary"
+                    >
+                      <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${suggestion.color}`}>
+                        <Icon className="h-4 w-4 text-white" />
+                      </div>
+                      <span className="text-sm font-medium text-foreground">{suggestion.label}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
           </motion.div>
         </div>
       )}
