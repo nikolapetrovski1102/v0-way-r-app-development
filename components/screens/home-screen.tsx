@@ -2,21 +2,21 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Search, Plus, ChevronRight, Navigation, MapPin, Calendar, Sparkles, TrendingUp, Clock, Heart, Landmark, Utensils, Camera, Music, TreePalm, Palette } from 'lucide-react'
+import { Search, Plus, ChevronRight, Navigation, MapPin, Calendar, Sparkles, TrendingUp, Clock, Heart, Play } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useNavigation } from '@/components/mobile-app-shell'
 import { destinations, tripHistory } from '@/lib/mock-data'
 
-// Onboarding interest categories for new users
-const onboardingInterests = [
-  { id: 'landmarks', label: 'Historic Landmarks', icon: Landmark, color: 'bg-amber-500' },
-  { id: 'food', label: 'Local Cuisine', icon: Utensils, color: 'bg-orange-500' },
-  { id: 'photography', label: 'Photo Spots', icon: Camera, color: 'bg-sky-500' },
-  { id: 'nightlife', label: 'Nightlife', icon: Music, color: 'bg-fuchsia-500' },
-  { id: 'nature', label: 'Nature & Parks', icon: TreePalm, color: 'bg-emerald-500' },
-  { id: 'art', label: 'Art & Museums', icon: Palette, color: 'bg-indigo-500' },
-]
+// Example trip preview for new users
+const exampleTrip = {
+  destination: 'Barcelona',
+  country: 'Spain',
+  days: 3,
+  image: 'https://images.unsplash.com/photo-1583422409516-2895a77efded?w=800&q=80',
+  highlights: ['Sagrada Familia', 'Park Guell', 'La Rambla', 'Gothic Quarter'],
+  description: 'Discover Gaudi\'s masterpieces and vibrant culture'
+}
 
 // Simulated AI suggestions based on user's past trips and trending destinations
 const aiSuggestions = [
@@ -49,7 +49,6 @@ const aiSuggestions = [
 export function HomeScreen() {
   const { navigate } = useNavigation()
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedInterests, setSelectedInterests] = useState<string[]>([])
 
   const filteredDestinations = destinations.filter(
     d => d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -62,16 +61,9 @@ export function HomeScreen() {
   const completedTripsCount = tripHistory.filter(t => t.status === 'completed').length
   const isNewUser = completedTripsCount === 0
 
-  const toggleInterest = (id: string) => {
-    setSelectedInterests(prev => 
-      prev.includes(id) 
-        ? prev.filter(i => i !== id) 
-        : [...prev, id]
-    )
-  }
-
-  const handleGetStarted = () => {
-    navigate('preferences', { preselectedInterests: selectedInterests })
+  const handleViewExampleTrip = () => {
+    // Navigate to itinerary to show the example trip
+    navigate('itinerary')
   }
 
   return (
@@ -143,83 +135,85 @@ export function HomeScreen() {
         </div>
       )}
 
-      {/* Onboarding Prompts - shown for new users with no past trips */}
+      {/* Example Trip Preview - shown for new users with no past trips */}
       {!hasActiveTrip && isNewUser && (
         <div className="px-6 pb-4">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-accent/10 p-4 ring-1 ring-primary/20"
+            className="overflow-hidden rounded-2xl bg-card ring-1 ring-border"
           >
-            {/* Header */}
-            <div className="mb-4 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
-                <Sparkles className="h-5 w-5 text-primary-foreground" />
+            {/* Image Section */}
+            <div className="relative h-44 overflow-hidden">
+              <img
+                src={exampleTrip.image}
+                alt={exampleTrip.destination}
+                className="h-full w-full object-cover"
+                crossOrigin="anonymous"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+              
+              {/* Badge */}
+              <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-white/90 px-2.5 py-1 backdrop-blur-sm">
+                <Sparkles className="h-3.5 w-3.5 text-primary" />
+                <span className="text-xs font-medium text-foreground">Example Trip</span>
               </div>
-              <div>
-                <h2 className="font-semibold text-foreground">Tell us what you love</h2>
-                <p className="text-sm text-muted-foreground">
-                  Select your interests for personalized trips
+              
+              {/* Destination Info */}
+              <div className="absolute inset-x-0 bottom-0 p-4">
+                <h3 className="text-xl font-bold text-white">
+                  {exampleTrip.destination}, {exampleTrip.country}
+                </h3>
+                <p className="mt-1 text-sm text-white/80">
+                  {exampleTrip.description}
                 </p>
               </div>
             </div>
 
-            {/* Interest Grid */}
-            <div className="grid grid-cols-2 gap-2">
-              {onboardingInterests.map((interest, index) => {
-                const Icon = interest.icon
-                const isSelected = selectedInterests.includes(interest.id)
-                return (
-                  <motion.button
-                    key={interest.id}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.05 }}
-                    onClick={() => toggleInterest(interest.id)}
-                    className={`flex items-center gap-2 rounded-xl p-3 transition-all ${
-                      isSelected 
-                        ? 'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2' 
-                        : 'bg-card text-foreground ring-1 ring-border hover:ring-primary/50'
-                    }`}
-                  >
-                    <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                      isSelected ? 'bg-white/20' : interest.color
-                    }`}>
-                      <Icon className={`h-4 w-4 ${isSelected ? 'text-primary-foreground' : 'text-white'}`} />
-                    </div>
-                    <span className="text-sm font-medium">{interest.label}</span>
-                  </motion.button>
-                )
-              })}
-            </div>
+            {/* Content Section */}
+            <div className="p-4">
+              {/* Trip Stats */}
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <Calendar className="h-4 w-4" />
+                  {exampleTrip.days} days
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <MapPin className="h-4 w-4" />
+                  {exampleTrip.highlights.length} stops
+                </span>
+              </div>
 
-            {/* Get Started Button */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: selectedInterests.length > 0 ? 1 : 0.5 }}
-              className="mt-4"
-            >
+              {/* Highlights */}
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {exampleTrip.highlights.map((highlight) => (
+                  <span
+                    key={highlight}
+                    className="rounded-full bg-secondary px-2.5 py-1 text-xs text-muted-foreground"
+                  >
+                    {highlight}
+                  </span>
+                ))}
+              </div>
+
+              {/* CTA Button */}
               <Button
-                onClick={handleGetStarted}
-                disabled={selectedInterests.length === 0}
-                className="w-full rounded-xl"
+                onClick={handleViewExampleTrip}
+                className="mt-4 w-full rounded-xl"
                 size="lg"
               >
-                {selectedInterests.length === 0 
-                  ? 'Select at least one interest' 
-                  : `Get Personalized Suggestions (${selectedInterests.length})`
-                }
-                <ChevronRight className="ml-2 h-4 w-4" />
+                <Play className="mr-2 h-4 w-4" />
+                See how a {exampleTrip.days}-day {exampleTrip.destination} trip looks
               </Button>
-            </motion.div>
 
-            {/* Skip Option */}
-            <button 
-              onClick={() => navigate('preferences')}
-              className="mt-3 w-full text-center text-sm text-muted-foreground hover:text-foreground"
-            >
-              Skip for now
-            </button>
+              {/* Create Your Own */}
+              <button 
+                onClick={() => navigate('preferences')}
+                className="mt-3 w-full text-center text-sm font-medium text-primary hover:underline"
+              >
+                Or create your own trip
+              </button>
+            </div>
           </motion.div>
         </div>
       )}
